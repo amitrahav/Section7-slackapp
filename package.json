@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@slack/bolt": "2.4.1",
+    "googleapis": "39"
+  }
+}
