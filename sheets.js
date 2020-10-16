@@ -2,6 +2,7 @@ const { google } = require("googleapis");
 const sheets = google.sheets("v4");
 const fs = require("fs");
 const spreadsheetId = process.env.SHEET_ID;
+const { numToLetter } = require("./utils.js");
 
 const SCOPES = [
   "https://www.googleapis.com/auth/spreadsheets",
@@ -11,15 +12,6 @@ const SCOPES = [
 
 let jwtClient = null;
 
-function letterToNum(letter) {
-  console.log("letterToNum", letter, typeof letter);
-  return letter.toLowerCase().charCodeAt(0) - 97 + 1;
-}
-
-function numToLetter(num) {
-  console.log("numToLetter", num, typeof num);
-  return String.fromCharCode(97 + num).toUpperCase();
-}
 
 async function initAuth() {
   if (!jwtClient) {
