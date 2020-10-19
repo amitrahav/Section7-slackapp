@@ -9,15 +9,25 @@ const serializeChannelForSheet = function(channel) {
   return serialized;
 };
 
-const getAllSlackChannels = async function(client) {
+const allSlackChannels = [];
+const userSlackChannels = [];
+
+const getAllSlackChannels = async function(client, cursor) {
   try {
     const result = await client.conversations.list({
       token: process.env.SLACK_BOT_TOKEN,
-      types: "public_channel,private_channel"
+      types: "public_channel,private_channel",
+      exclude_archived: true,
+      limit: 100,
+      cursor: cursor || ''
     });
 
     if (result.ok) {
-      return result.channels.filter(channel => !channel.is_archived).map(channel => serializeChannelForSheet(channel));
+      allSlackChannels.push(...result.channels.map(channel => serializeChannelForSheet(channel)))
+      if(result.response_metadata.next_cursor !== ''){
+        return await getAllSlackChannels(client, result.response_metadata.next_cursor);
+      }
+      return allSlackChannels;
     }
 
     throw new Error(result);
@@ -28,16 +38,23 @@ const getAllSlackChannels = async function(client) {
   }
 };
 
-const getUsersAllowedChannels = async function(client, user) {
+const getUsersAllowedChannels = async function(client, user, cursor) {
   try {
     const result = await client.users.conversations({
       token: process.env.SLACK_BOT_TOKEN,
       types: "public_channel,private_channel",
-      user: user
+      user: user,
+      exclude_archived: true,
+      limit: 100,
+      cursor: cursor || ''
     });
 
     if (result.ok) {
-      return result.channels.filter(channel => !channel.is_archived).map(channel => serializeChannelForSheet(channel));
+      allSlackChannels.push(...result.channels.map(channel => serializeChannelForSheet(channel)))
+      if(result.response_metadata.next_cursor !== ''){
+        return await getUsersAllowedChannels(client, user, result.response_metadata.next_cursor);
+      }
+      return allSlackChannels;
     }
 
     throw new Error(result);
